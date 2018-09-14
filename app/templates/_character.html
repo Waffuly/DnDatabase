@@ -1,0 +1,8 @@
+<table>
+        <tr valign="top">
+            <td><img src="{{ character.player.avatar(36) }}"></td>
+            <td>
+            	<a href="{{ url_for('display_character', username=current_user.username, character=character.name) }}">{{ character.name }}</a>
+            	<br>Level: {{ character.level }} <br> {{ character.race }} {{ character.char_class }}</td>
+        </tr>
+    </table>

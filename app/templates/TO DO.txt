@@ -1,0 +1,14 @@
+TO DO
+
+-Create_char forms:
+--add custom class
+--add custom race
+
+-edit_char
+-char search
+-finish delete char
+-setup create party
+-create DM/party leader
+-initiative tracker
+
+
