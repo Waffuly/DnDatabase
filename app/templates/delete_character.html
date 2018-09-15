@@ -1,20 +1,12 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Delete Album</h2>
-
-{% from "_formhelpers.html" import render_field %}
-<form method=post>
-	<dl>
-		{{ render_field(form.name) }}
-        {{ render_field(form.char_class) }}
-        {{ render_field(form.sub_class) }}
-        {{ render_field(form.race) }}
-        {{ render_field(form.sub_race) }}
-        {{ render_field(form.level) }}
-        {{ render_field(form.hp) }}
-        {{ render_field(form.party) }}
-    </dl>
-    <p><input type=submit value=Delete></p>
+<h2>Delete Character</h2>
+<p>Are you sure you want to delete {{ character }}?</p>
+<form method="post">
+	<button type="submit">Delete</button>
 </form>
+
+<a href="{{ url_for('user', username=current_user.username) }}">No</a>
+
 
 {% endblock %}

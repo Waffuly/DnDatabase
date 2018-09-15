@@ -93,3 +93,14 @@ class CharacterSearchForm(FlaskForm):
 				('party', 'Party')]
 	select = SelectField('Search for characters:', choices=choices)
 	search = StringField('')
+
+class DiceRoll(FlaskForm):
+	choices = [
+				(4, 'd4'),
+				(6, 'd6'),
+				(8, 'd8'),
+				(10, 'd10'),
+				(12, 'd12'),
+				(20, 'd20')
+				]
+	dice_select = SelectField('Choose your die:', choices=choices)

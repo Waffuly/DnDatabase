@@ -3,11 +3,17 @@
 {% block content %}
 
 
-			<h1>{{ character.name }}</h1>
-			<p>Class: {{ character.char_class }}</p>
-			<p>Race: {{ character.race }}</p>
-			<p>Level: {{ character.level }}</p>
-			<p>Max HP: {{ character.hp }}</p>
-			<p>Party: {{ character.party }}</p>
+<h1>{{ character.name }}</h1>
+<p>Class: {{ character.char_class }}</p>
+<p>Sub Class: {{ character.sub_class }}</p>
+<p>Race: {{ character.race }}</p>
+<p>Sub Race: {{ character.sub_race }}
+<p>Level: {{ character.level }}</p>
+<p>Max HP: {{ character.hp }}</p>
+<p>Party: {{ character.party }}</p>
+<br>
+<br>
+<a id="delete" href="{{ url_for('delete_confirm', username=current_user.username, character=character.name) }}">Delete</a>
+
 
 {% endblock %}

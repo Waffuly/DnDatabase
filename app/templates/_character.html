@@ -3,6 +3,11 @@
             <td><img src="{{ character.player.avatar(36) }}"></td>
             <td>
             	<a href="{{ url_for('display_character', username=current_user.username, character=character.name) }}">{{ character.name }}</a>
-            	<br>Level: {{ character.level }} <br> {{ character.race }} {{ character.char_class }}</td>
-        </tr>
+            	<br>
+            	<a href="{{ url_for('edit_character', username=current_user.username, character=character.name) }}">Edit</a>
+            	<br>Level: {{ character.level }} <br>
+            	 {{ character.race }} {{ character.char_class }} <br>
+            	 User: {{ character.player.username }}</td> <br>
+            	</tr>
+            	
     </table>

@@ -1,7 +1,7 @@
 from flask import render_template, flash, redirect, url_for, request, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
 from app import app, db
-from app.forms import LoginForm, RegistrationForm, NewCharacterForm, CharacterSearchForm
+from app.forms import LoginForm, RegistrationForm, NewCharacterForm, CharacterSearchForm, DiceRoll
 from app.models import User, Character, Sub_Race, Sub_Class, Results
 from werkzeug.urls import url_parse
 
@@ -9,7 +9,8 @@ from werkzeug.urls import url_parse
 @app.route('/index', methods=['GET', 'POST'])
 @login_required
 def index():
-	return render_template('index.html', title='Home Page')
+	characters = Character.query.all()
+	return render_template('index.html', title='Home Page', characters=characters)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -70,8 +71,27 @@ def create_new_char(username):
 		db.session.add(character)
 		db.session.commit()
 		flash('Your character has been created!')
-		return redirect(url_for('index'))
+		return redirect(url_for('user', username=current_user.username))
 	return render_template('create_new_char.html', user=user, form=form, title='Create New Character')
+
+@app.route('/user/<username>/edit_character/<character>', methods=['GET', 'POST'])
+@login_required
+def edit_character(username, character):
+	user = User.query.filter_by(username=username).first_or_404()
+	char_id = user.id
+	char = Character.query.filter_by(user_id=char_id, name=character).first_or_404()
+	form = NewCharacterForm(obj=char)
+	current_char_race = char.race
+	current_char_class = char.char_class
+	form.sub_race.choices = [(sub_race.name, sub_race.name) for sub_race in Sub_Race.query.filter_by(race=current_char_race).all()]
+	form.sub_class.choices = [(sub_class.name, sub_class.name) for sub_class in Sub_Class.query.filter_by(char_class=current_char_class).all()]
+	if request.method == 'POST':
+		form.populate_obj(char)
+		db.session.add(char)
+		db.session.commit()
+		flash('Your character has been saved!')
+		return redirect(url_for('user', username=current_user.username))
+	return render_template('edit_character.html', user=user, form=form, title='Edit Character')
 
 @app.route('/user/<username>/<character>', methods=['GET', 'POST'])
 @login_required
@@ -130,6 +150,19 @@ def search_results(search):
 		table.border = True
 		return render_template('results.html', results=results, table=table, title="Search Results")
 
+@app.route('/dice_roller', methods=['GET', 'POST'])
+@login_required
+def dice_roller():
+	form = DiceRoll(request.form)
+	num = 0
+	return render_template('dice_roller.html', form=form, num=num)
+
+@app.route('/dice_update', methods=['POST'])
+def dice_update():
+	num = request.form['result']
+	return jsonify({'result': num})
+
+
 # dynamic SelectField for sub_races
 @app.route('/sub_race/<race>')
 def sub_race(race):
@@ -152,19 +185,16 @@ def sub_class(char_class):
 		sub_class_array.append(sub_class_obj)
 	return jsonify({'sub_classes' : sub_class_array})
 
-@app.route('/delete/<name>', methods=['GET', 'POST'])
-def delete(name):
-	qry = db.session.query(Character).filter(Character.name==name)
-	character = qry.first()
-
-	if character:
-		form = CharacterForm(formdata=request.form, obj=character)
-		if request.method == 'POST' and form.validate():
-			db.session.delete(character)
-			db.session.commit()
-
-			flash("Character deleted successfully!")
-			return redirect(url_for('user', username=current_user.username))
-		return render_template('delete_character.html', form=form, title="Delete Character")
-	else:
-		return "Error deleting {}.".format(name)
+@app.route('/delete_confirm/<character>', methods=['GET', 'POST'])
+@login_required
+def delete_confirm(character):
+	char = Character.query.filter_by(name=character).first_or_404()
+	char_name = char.name
+	
+	if request.method == 'POST':
+		db.session.delete(char)
+		db.session.commit()
+		flash("Character Successfully Deleted!")
+		return redirect(url_for('user', username=current_user.username))
+	
+	return render_template('delete_character.html', title="Delete Character", character=char_name)

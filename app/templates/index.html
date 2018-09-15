@@ -3,4 +3,8 @@
 {% block content %}
 
     <h1>Hi, {{ current_user.first_name }}!</h1>
+
+    {% for character in characters %}
+    		{% include '_character.html' %}
+    	{% endfor %}
 {% endblock %}
