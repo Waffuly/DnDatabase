@@ -3,12 +3,17 @@ TO DO
 -Create_char forms:
 --add custom class
 --add custom race
+--add stat rollers
 
--edit_char
--char search
--finish delete char
+-dice roller
+--add custom dx
+--add custom Xdx
+--add custom dx + x
+
 -setup create party
+-upload avatars
 -create DM/party leader
 -initiative tracker
+
 
 

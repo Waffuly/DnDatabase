@@ -3,20 +3,26 @@
 {% block content %}
     <table>
         <tr valign="top">
-            <td><img src="{{ user.avatar(128) }}"></td>
+                {% if user.profile_photo %}
+                <img src="{{ user.profile_photo }}" style="width:128px;height:128px;border-radius:50%;">
+                {% else %}
+                <img src="{{ user.avatar(128) }}">
+                {% endif %}
             <td><h1>User: {{ user.first_name }}</h1></td>
         </tr>
     </table>
+        <a href="{{ url_for('upload', username=current_user.username) }}">Change Profile Avatar</a>
     <hr>
     <a href="{{ url_for('create_new_char', username=current_user.username) }}">Create New Character</a>
+    <br>
+    <br>
 
-    {% if characters_list_exist == 0 %}
-	    
-		{% for character in characters %}
-    		{% include '_character.html' %}
-    	{% endfor %}
 
+    {% if not characters %}
+        <h1>You should create a new character!</h1>
 	{% else %}
-	    <h1>You should create a new character!</h1>
+        {% for character in characters %}
+        {% include '_character.html' %}
+        {% endfor %}
 	{% endif %}
 {% endblock %}

@@ -1,10 +1,18 @@
 <table>
         <tr valign="top">
-            <td><img src="{{ character.player.avatar(36) }}"></td>
             <td>
-            	<a href="{{ url_for('display_character', username=current_user.username, character=character.name) }}">{{ character.name }}</a>
-            	<br>
+                {% if character.player.profile_photo %}
+                <img src="{{ character.player.profile_photo }}" style="width:36px;height:36px;border-radius:50%;">
+                {% else %}
+                <img src="{{ character.player.avatar(36) }}">
+                {% endif %}
+            </td>
+            <td>
+            	<a href="{{ url_for('display_character', username=character.player.username, character=character.name) }}">{{ character.name }}</a>
+                {% if character.player.username == current_user.username %}
+                <br>
             	<a href="{{ url_for('edit_character', username=current_user.username, character=character.name) }}">Edit</a>
+                {% endif %}
             	<br>Level: {{ character.level }} <br>
             	 {{ character.race }} {{ character.char_class }} <br>
             	 User: {{ character.player.username }}</td> <br>

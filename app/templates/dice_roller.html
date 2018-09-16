@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% from "_formhelpers.html" import render_field %}
+<form method=post>
+	{{ form.hidden_tag() }}
+	<dl id="dice">
+		{{ render_field(form.dice_select) }}
+	</dl>
+	<p><input type=submit value=Roll! id='roll' onclick='roll_click(dx); return false;'></p>
+</form>
+<h3>Number Result:</h3>
+<p id="placeholder"></p>
+<script>
+
+	let dice_select = document.getElementById('dice_select');
+	let roll_button = document.getElementById('roll');
+	var dx = dice_select.value;
+
+	dice_select.onchange = function() {
+		dx = dice_select.value;
+	}
+
+	function roll_click(num) {
+		x = num
+		var result = Math.floor(Math.random() * x) + 1;
+		var placeholder = document.getElementById('placeholder');
+		placeholder.innerHTML = result;
+		};
+
+</script>
+
+{% endblock %}

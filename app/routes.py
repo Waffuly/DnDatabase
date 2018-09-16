@@ -1,9 +1,12 @@
 from flask import render_template, flash, redirect, url_for, request, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
-from app import app, db
+from app import app, db, photos
 from app.forms import LoginForm, RegistrationForm, NewCharacterForm, CharacterSearchForm, DiceRoll
 from app.models import User, Character, Sub_Race, Sub_Class, Results
 from werkzeug.urls import url_parse
+from werkzeug.utils import secure_filename
+from pathlib import Path, PureWindowsPath, PurePath
+import os
 
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET', 'POST'])
@@ -53,10 +56,7 @@ def register():
 def user(username):
     user = User.query.filter_by(username=username).first_or_404()
     characters = current_user.get_characters()
-    characters_list_exist = 0
-    if not characters:
-    	characters_list_exist = 1
-    return render_template('user.html', user=user, characters=characters, characters_list_exist=characters_list_exist, title='Profile')
+    return render_template('user.html', user=user, characters=characters, title='Profile')
 
 @app.route('/user/<username>/create_new_char', methods=['GET', 'POST'])
 @login_required
@@ -101,7 +101,7 @@ def display_character(username, character):
 	user = User.query.filter_by(username=username).first_or_404()
 	char_id = user.id
 	char = Character.query.filter_by(user_id=char_id, name=character).first_or_404()
-	return render_template('display_char.html', character=char, title=str(character))
+	return render_template('display_char.html', username=user, character=char, title=str(character))
 
 @app.route('/search', methods=['GET', 'POST'])
 @login_required
@@ -162,6 +162,51 @@ def dice_update():
 	num = request.form['result']
 	return jsonify({'result': num})
 
+def allowed_file(filename):
+	return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+@app.route('/upload/<username>', methods=['GET', 'POST'])
+@login_required
+def upload(username):
+	user = User.query.filter_by(username=username).first_or_404()
+
+	if request.method == 'POST':
+
+		if 'photo' not in request.files:
+			flash('No file part')
+			return redirect(url_for('user', username=username))
+
+		file = request.files['photo']
+
+		if file.filename == '':
+			flash("No selected file")
+			return redirect(url_for('user', username=username))
+
+		if file and allowed_file(file.filename):
+			
+			# TODO
+			# language to delete old photos using OS neutral path
+			# if user.profile_photo:
+			# 	delete_old = os.path.normpath(user.profile_photo)
+			# 	flash(str(delete_old))
+			# 	os.remove(user.profile_photo)
+
+			# save requested img to server
+			filename = Path(secure_filename(file.filename)).as_posix()
+			flash(filename)
+			filename_2 = photos.save(request.files['photo'])
+
+			# establish OS neutral file path to save to DB
+			pure_path = Path(PureWindowsPath('\\static\\img\\'))
+			user.profile_photo = os.path.join(pure_path.as_posix(), filename)
+
+			#commit filepath string to db
+			db.session.commit()
+
+			flash("New Avatar Uploaded Sucessfully!")
+			return redirect(url_for('user', username=username))
+	return render_template('upload.html', username=username)
+
 
 # dynamic SelectField for sub_races
 @app.route('/sub_race/<race>')
@@ -190,7 +235,7 @@ def sub_class(char_class):
 def delete_confirm(character):
 	char = Character.query.filter_by(name=character).first_or_404()
 	char_name = char.name
-	
+
 	if request.method == 'POST':
 		db.session.delete(char)
 		db.session.commit()

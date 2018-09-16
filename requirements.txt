@@ -19,6 +19,7 @@ itsdangerous==0.24
 Jinja2==2.10
 Mako==1.0.7
 MarkupSafe==1.0
+pathlib==1.0.1
 pipenv==2018.7.1
 pprint==0.1
 psycopg2==2.7.5

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+<head>
+    <title>
+        Document
+    </title>
+</head>
+{% block content %}
+<body>
+    <h1>Edit Character</h1>
+    
+{% from "_formhelpers.html" import render_field %}
+<form method=post>
+    <dl>
+        {{ render_field(form.name) }}
+        {{ render_field(form.char_class) }}
+        {{ render_field(form.sub_class) }}
+        {{ render_field(form.race) }}
+        {{ render_field(form.sub_race) }}
+        {{ render_field(form.level) }}
+        {{ render_field(form.hp) }}
+        {{ render_field(form.party) }}
+    </dl>
+    <p><input type=submit value=Submit></p>
+</form>
+<script>
+    let race_select = document.getElementsByName('race')[0];
+    let sub_race_select = document.getElementsByName('sub_race')[0];
+    let char_class_select = document.getElementsByName('char_class')[0];
+    let sub_class_select = document.getElementsByName('sub_class')[0];
+
+    race_select.onchange = function() {
+        race = race_select.value;
+        fetch('/sub_race/' + race).then(function(response) {
+            response.json().then(function(data) {
+                let optionHTML = '';
+
+                for (let sub_race of data.sub_races) {
+                    optionHTML += '<option value="' + sub_race.name + '">' + sub_race.name + '</option>';
+                }
+
+                sub_race_select.innerHTML = optionHTML;
+            })
+        })
+    }
+     char_class_select.onchange = function() {
+        char_class = char_class_select.value;
+        fetch('/sub_class/' + char_class).then(function(response) {
+            response.json().then(function(data) {
+                let optionHTML_two = '';
+
+                for (let sub_class of data.sub_classes) {
+                    optionHTML_two += '<option value="' + sub_class.name + '">' + sub_class.name + '</option>';
+                }
+
+                sub_class_select.innerHTML = optionHTML_two;
+            })
+        })
+    }
+</script>
+</body>
+{% endblock %}
