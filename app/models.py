@@ -4,14 +4,16 @@ from flask_login import UserMixin
 from hashlib import md5
 from flask_table import Table, Col
 
+
 class User(UserMixin, db.Model):
 		
 	id = db.Column(db.Integer, primary_key=True)
 	username = db.Column(db.String(64), index=True, unique=True)
 	first_name = db.Column(db.String(64))
 	password_hash = db.Column(db.String(128))
-	profile_photo = db.Column(db.String(128))
+	profile_photo = db.Column(db.String(128), nullable=True)
 	characters = db.relationship('Character', backref='player', lazy='dynamic')
+	parties = db.relationship('Party', backref='DM', lazy='dynamic')
 
 	def set_password(self, password):
 		self.password_hash = generate_password_hash(password)
@@ -40,7 +42,7 @@ class User(UserMixin, db.Model):
 		return char_list
 
 class Character(db.Model):
-	id = db.Column(db.Integer, primary_key=True)
+	character_id = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.String(64), index=True)
 	level = db.Column(db.Integer)
 	race = db.Column(db.String(64))
@@ -48,7 +50,7 @@ class Character(db.Model):
 	char_class = db.Column(db.String(64))
 	sub_class = db.Column(db.String(64))
 	hp = db.Column(db.Integer)
-	party = db.Column(db.String(64), nullable=True)
+	party_id = db.Column(db.Integer, db.ForeignKey('party.party_id'), nullable=True)
 	user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
 	def __repr__(self):
@@ -71,6 +73,12 @@ class Results(Table):
 	race = Col('Race')
 	level = Col('Level')
 	party = Col('Party')
+
+class Party(db.Model):
+	party_id = db.Column(db.Integer, primary_key=True)
+	party_name = db.Column(db.String(64))
+	party_leader = db.Column(db.Integer, db.ForeignKey('user.id'))
+	members = db.relationship('Character', backref='member', lazy='dynamic')
 
 
 @login.user_loader

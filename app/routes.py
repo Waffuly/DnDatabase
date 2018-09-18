@@ -1,11 +1,12 @@
 from flask import render_template, flash, redirect, url_for, request, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
 from app import app, db, photos
-from app.forms import LoginForm, RegistrationForm, NewCharacterForm, CharacterSearchForm, DiceRoll
+from app.forms import LoginForm, RegistrationForm, NewCharacterForm, CharacterSearchForm, DiceRoll, NewPartyForm
 from app.models import User, Character, Sub_Race, Sub_Class, Results
 from werkzeug.urls import url_parse
 from werkzeug.utils import secure_filename
 from pathlib import Path, PureWindowsPath, PurePath
+import json
 import os
 
 @app.route('/', methods=['GET', 'POST'])
@@ -67,7 +68,7 @@ def create_new_char(username):
 	form.sub_race.choices = [(sub_race.name, sub_race.name) for sub_race in Sub_Race.query.filter_by(race='Aarakocra').all()]
 	if request.method == 'POST':
 		character = Character(name=form.name.data, race=form.race.data,\
-		 char_class=form.char_class.data, sub_class=form.sub_class.data, sub_race=form.sub_race.data, level=form.level.data, hp=form.hp.data, party=form.party.data, user_id=user.id)
+		 char_class=form.char_class.data, sub_class=form.sub_class.data, sub_race=form.sub_race.data, level=form.level.data, hp=form.hp.data, user_id=user.id)
 		db.session.add(character)
 		db.session.commit()
 		flash('Your character has been created!')
@@ -78,7 +79,7 @@ def create_new_char(username):
 @login_required
 def edit_character(username, character):
 	user = User.query.filter_by(username=username).first_or_404()
-	char_id = user.id
+	char_id = user.user_id
 	char = Character.query.filter_by(user_id=char_id, name=character).first_or_404()
 	form = NewCharacterForm(obj=char)
 	current_char_race = char.race
@@ -131,9 +132,9 @@ def search_results(search):
 		elif search.data['select'] == 'level':
 			qry = Character.query.filter(Character.level.contains(search_string))
 			results = qry.all()
-		elif search.data['select'] == 'party':
-			qry = Character.query.filter(Character.party.contains(search_string))
-			results = qry.all()
+		# elif search.data['select'] == 'party':
+		# 	qry = Character.query.filter(Character.party.contains(search_string))
+		# 	results = qry.all()
 		else:
 			qry = db.session.query(Character)
 			results = qry.all()
@@ -165,6 +166,31 @@ def dice_update():
 def allowed_file(filename):
 	return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
+# create new party
+@app.route('/create_new_party', methods=['GET', 'POST'])
+@login_required
+def create_new_party():
+	user = User.query.filter_by(username=current_user.username).first_or_404()
+	form = NewPartyForm()
+	form.party_members.choices = [(character.name, character.name) for character in Character.query.all()]
+
+	if request.method == 'POST':
+		current_party_list = party_list()
+		new_party = Party(party_name=form.party_name.data, party_leader=user.id)
+		for char in current_party_list:
+			char.party_id = new_party.party_id
+		db.session.add(new_party)
+		db.session.commit()
+		flash('Your party has been created!')
+		return redirect(url_for('user', username=current_user.username))
+	return render_template('create_new_party.html', form=form, user=user)
+
+@app.route('/party_list')
+@login_required
+def party_list():
+	current_party_list = json.loads(request.args.get('party_list'))
+	return jsonify(result=current_party_list)
+
 @app.route('/upload/<username>', methods=['GET', 'POST'])
 @login_required
 def upload(username):
@@ -193,7 +219,6 @@ def upload(username):
 
 			# save requested img to server
 			filename = Path(secure_filename(file.filename)).as_posix()
-			flash(filename)
 			filename_2 = photos.save(request.files['photo'])
 
 			# establish OS neutral file path to save to DB
@@ -210,6 +235,7 @@ def upload(username):
 
 # dynamic SelectField for sub_races
 @app.route('/sub_race/<race>')
+@login_required
 def sub_race(race):
 	sub_races = Sub_Race.query.filter_by(race=race).all()
 	sub_race_array = []
@@ -221,6 +247,7 @@ def sub_race(race):
 
 # dynamic SelectField for sub_classes
 @app.route('/sub_class/<char_class>')
+@login_required
 def sub_class(char_class):
 	sub_classes = Sub_Class.query.filter_by(char_class=char_class).all()
 	sub_class_array = []

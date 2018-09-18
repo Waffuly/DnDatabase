@@ -81,7 +81,6 @@ class NewCharacterForm(FlaskForm):
 	sub_class = SelectField('Character Sub-Class', choices=[], coerce=str, validators=[DataRequired()])
 	level = IntegerField('Character Level', validators=[DataRequired()])
 	hp = IntegerField('Max HP')
-	party = StringField('Party')
 	submit = SubmitField('Create Character')
 	# add list of existent parties
 
@@ -104,3 +103,10 @@ class DiceRoll(FlaskForm):
 				(20, 'd20')
 				]
 	dice_select = SelectField('Choose your die:', choices=choices)
+
+class NewPartyForm(FlaskForm):
+	choices = []
+	remove_choices = []
+	party_name = StringField('Campaign Name')
+	party_members = SelectField('Add Members', choices=choices)
+	remove_party_members = SelectField('Remove Members', choices=remove_choices)

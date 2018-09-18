@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<body>
+
+	<h1>Create New Party</h1>
+
+{% from "_formhelpers.html" import render_field %}
+	<form method=post>
+		<dl>
+			<p>Party Leader: {{ user.username }} </p>
+			{{ render_field(form.party_name) }}
+			{{ render_field(form.party_members) }}
+			{{ render_field(form.remove_party_members )}}
+		</dl>
+		<p>
+			<input type=submit value=Submit>
+		</p>
+	</form>
+<script>
+	let party_member_select = document.getElementsByName('party_members')[0]
+	let remove_party_members_select = document.getElementsByName('remove_party_members')[0]
+	let current_party_list = [];
+	let optionDict = {'':'<option value="">Pick a Party Member to Remove</option>'}
+
+	party_member_select.onchange = function() {
+		party_member = party_member_select.value;
+		current_party_list.push(party_member);
+		var optionHTML = ''
+		optionDict[party_member] = '<option value="' + party_member + '">' + party_member + '</option>';
+		var values = Object.keys(optionDict).map(function(key){
+    		return optionDict[key];
+    	});
+    	for (i = 0; i < values.length; i++) {
+    		optionHTML += values[i];
+    	}
+		remove_party_members_select.innerHTML = optionHTML;
+	}
+	remove_party_members_select.onchange = function() {
+		remove_party_member = remove_party_members_select.value;
+		current_party_list.pop(party_member);
+		var optionHTML = ''
+		delete optionDict[remove_party_member];
+		var values = Object.keys(optionDict).map(function(key){
+			return optionDict[key];
+		});
+		for (i = 0; i < values.length; i++) {
+			optionHTML += values[i];
+		}
+		remove_party_members_select.innerHTML = optionHTML;
+	}
+	party_member_select.addEventListener('click', loadParty);
+
+	function loadParty() {
+	$.getJSON('/party_list', {
+		party_list: JSON.stringify(current_party_list)
+	}, function(data){
+		console.log(data.result);
+	});
+}
+</script>
+</body>
+{% endblock %}
